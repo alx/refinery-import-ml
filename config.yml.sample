@@ -1,0 +1,4 @@
+mailing:
+  login:    your_mail@gmail.com
+  password: your_path
+db_path: /path/to/db.sqlite3
