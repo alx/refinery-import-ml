@@ -14,12 +14,18 @@ Because we want people to read some of this content on the website, and without 
 
 * Display all avalaible mail for import:
 
+```
     ruby mailing.rb
+```
 
 * Select a particular mail in this list:
 
+```
     ruby mailing.rb 3
+```
 
 * Mark all mails as read
 
+```
     ruby mailing 0
+```
