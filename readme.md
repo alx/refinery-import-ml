@@ -12,13 +12,13 @@ Because we want people to read some of this content on the website, and without 
 
 ## Usage
 
-* Display all avalaible mail for import:
+* Display all avalaible mails for import:
 
 ```
     ruby mailing.rb
 ```
 
-* Select a particular mail in this list:
+* Select a particular mail from this list into refinerycms-blog engine database:
 
 ```
     ruby mailing.rb 3
@@ -27,5 +27,5 @@ Because we want people to read some of this content on the website, and without 
 * Mark all mails as read
 
 ```
-    ruby mailing 0
+    ruby mailing.rb 0
 ```
