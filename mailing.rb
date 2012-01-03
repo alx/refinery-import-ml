@@ -2,6 +2,7 @@ require 'rubygems'
 require 'yaml'
 require 'gmail'
 require 'sqlite3'
+require 'kramdown'
 
 @config = YAML.load_file("config.yml")
 @mail_account = @config['mailing']
@@ -27,8 +28,9 @@ end
 
 def insert_email_as_post(email_index)
   if email = @gmail.inbox.emails(:unread, :to => "tetalab@lists.tetalab.org")[email_index]
-    content = content_from_multipart_mail(email) if email.multipart?
     title = email.subject.gsub("[Tetalab] ", "")
+    content = content_from_multipart_mail(email) if email.multipart?
+    content = Kramdown::Document.new(content).to_html
     @db.execute("INSERT INTO blog_posts (title, body, draft, published_at, created_at) VALUES (?, ?, 'true', ?, ?)", [title, content, Time.now.to_s, Time.now.to_s])
     puts "'#{title}' inserted in db"
   else
