@@ -8,7 +8,6 @@ require 'iconv'
 
 @config = YAML.load_file("config.yml")
 @mail_account = @config['mailing']
-@db = SQLite3::Database.new( @config["db_path"] )
 @gmail = Gmail.new(@mail_account['login'], @mail_account['password'])
 
 def content_from_part(part)
@@ -28,6 +27,26 @@ def content_from_multipart_mail(email)
   return content
 end
 
+def retrieve_db
+  puts "retrieving db from server..."
+  `scp -P 22101 webadmin@tetalab.org:/var/www/refinery/shared/db/production.sqlite3 #{@config["db_path"]}`
+  puts "db retrieved"
+end
+
+def send_db
+  puts "sending db to server..."
+  `scp -P 22101 #{@config["db_path"]} webadmin@tetalab.org:/var/www/refinery/shared/db/production.sqlite3`
+  puts "db sent"
+end
+
+def insert_db_post(title, content)
+  post_time = (Time.now - 3600).to_s
+  @db = SQLite3::Database.new( @config["db_path"] )
+  query = "INSERT INTO blog_posts (title, body, draft, published_at, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  @db.execute(query, [title, content, 't', post_time, post_time, post_time, 1])
+  send_db
+end
+
 def insert_email_as_post(email_index)
   if email = @gmail.inbox.emails(:unread, :to => "tetalab@lists.tetalab.org")[email_index]
 
@@ -41,8 +60,7 @@ def insert_email_as_post(email_index)
     content = markdown.render(content)
     #coder.encode(content, :decimal))
 
-    query = "INSERT INTO blog_posts (title, body, draft, published_at, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    @db.execute(query, [title, content, 't', Time.now.to_s, Time.now.to_s, Time.now.to_s, 1])
+    insert_db_post(title, content)
 
     puts "'#{title}' inserted in db"
   else
@@ -69,7 +87,11 @@ end
 
 # Console interface
 if ARGV[0] && index = ARGV[0].to_i
-  index == 0 ? mark_all_read : insert_email_as_post(index - 1)
+  case index
+    when -1 then retrieve_db
+    when 0 then mark_all_read
+    else insert_email_as_post(index - 1)
+  end
 else
   select_email_to_insert
 end
